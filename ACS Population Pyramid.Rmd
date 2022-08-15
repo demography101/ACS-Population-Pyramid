@@ -14,7 +14,7 @@ library(dplyr)
 library(plyr)
 library(tidycensus)
 
-census_api_key('041f118e070667dea491978da5e7c2bedb842535')
+census_api_key('Census API Key') # Request API key from US Census website
 acs20 <- load_variables(2020, "acs5", cache = FALSE)  
 
 f2020 <- get_acs(geography = "state", 
