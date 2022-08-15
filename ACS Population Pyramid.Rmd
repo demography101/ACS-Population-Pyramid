@@ -1,0 +1,142 @@
+---
+title: "acs population pyramid"
+output: html_document
+date: '2022-08-15'
+---
+
+```{r setup, include=FALSE}
+
+# US Census Bureau
+library(ggplot2)
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(plyr)
+library(tidycensus)
+
+census_api_key('041f118e070667dea491978da5e7c2bedb842535')
+acs20 <- load_variables(2020, "acs5", cache = FALSE)  
+
+f2020 <- get_acs(geography = "state", 
+                 variables = c('B01001_027', 'B01001_028', 'B01001_029', 
+                               'B01001_030', 'B01001_031', 'B01001_032', 
+                               'B01001_033', 'B01001_034', 'B01001_035',
+                               'B01001_036', 'B01001_037', 'B01001_038', 
+                               'B01001_039', 'B01001_040', 'B01001_041',
+                               'B01001_042', 'B01001_043', 'B01001_044', 
+                               'B01001_045', 'B01001_046', 'B01001_047', 
+                               'B01001_048', 'B01001_049'), 
+                       year = 2020, 
+                       output = "wide") %>%
+         mutate(Gender = 'Women',              
+                '0-4' = sum(B01001_027E), 
+                "5-9" = sum(B01001_028E),
+                '10-14' = sum(B01001_029E),
+                '15-19' = sum(B01001_030E) + sum(B01001_031E), #Mutate certain age groups
+                '20-24' = sum(B01001_032E) + sum(B01001_033E) + sum(B01001_034E),
+                "25-29" = sum(B01001_035E), 
+                "30-34" = sum(B01001_036E),
+                "35-39" = sum(B01001_037E), 
+                "40-44" = sum(B01001_038E),
+                "45-49" = sum(B01001_039E), 
+                "50-54" = sum(B01001_040E),
+                "55-59" = sum(B01001_041E), 
+                '60-64' = sum(B01001_042E) + sum(B01001_043E),
+                '65-69' = sum(B01001_044E) + sum(B01001_045E),
+                "70-74" = sum(B01001_046E),
+                "75-79" = sum(B01001_047E), 
+                "80-84" = sum(B01001_048E),
+                "85+" = sum(B01001_049E)) %>%
+         select(-NAME, -GEOID, 
+                #Remove estimates and marigin of errors so that age groups are left
+                -B01001_027E, -B01001_028E, -B01001_029E, -B01001_030E, 
+                -B01001_031E, -B01001_032E, -B01001_033E, -B01001_034E, 
+                -B01001_035E, -B01001_036E, -B01001_037E, -B01001_038E, 
+                -B01001_039E, -B01001_040E, -B01001_041E, -B01001_042E, 
+                -B01001_043E, -B01001_044E, -B01001_045E, -B01001_046E, 
+                -B01001_047E, -B01001_048E, -B01001_049E,
+                -B01001_027M, -B01001_028M, -B01001_029M, -B01001_030M, 
+                -B01001_031M, -B01001_032M, -B01001_033M, -B01001_034M, 
+                -B01001_035M, -B01001_036M, -B01001_037M, -B01001_038M, 
+                -B01001_039M, -B01001_040M, -B01001_041M, -B01001_042M, 
+                -B01001_043M, -B01001_044M, -B01001_045M, -B01001_046M, 
+                -B01001_047M, -B01001_048M, -B01001_049M) %>%
+        distinct()
+
+
+m2020 <- get_acs(geography = "state", 
+                 variables = c('B01001_003', 'B01001_004', 'B01001_005', 
+                               'B01001_006', 'B01001_007', 'B01001_008', 
+                               'B01001_009', 'B01001_010', 'B01001_011',
+                               'B01001_012', 'B01001_013', 'B01001_014', 
+                               'B01001_015', 'B01001_016', 'B01001_017',
+                               'B01001_018', 'B01001_019', 'B01001_020', 
+                               'B01001_021', 'B01001_022', 'B01001_023', 
+                               'B01001_024', 'B01001_025'), 
+                       year = 2020, 
+                       output = "wide") %>%
+         mutate(Gender = 'Men',
+                '0-4' = sum(B01001_003E), 
+                "5-9" = sum(B01001_004E),
+                '10-14' = sum(B01001_005E),
+                '15-19' = sum(B01001_006E) + sum(B01001_007E),
+                '20-24' = sum(B01001_008E) + sum(B01001_009E) + sum(B01001_010E),
+                "25-29" = sum(B01001_011E), 
+                "30-34" = sum(B01001_012E),
+                "35-39" = sum(B01001_013E), 
+                "40-44" = sum(B01001_014E),
+                "45-49" = sum(B01001_015E), 
+                "50-54" = sum(B01001_016E),
+                "55-59" = sum(B01001_017E), 
+                '60-64' = sum(B01001_018E) + sum(B01001_019E),
+                '65-69' = sum(B01001_020E) + sum(B01001_021E),
+                "70-74" = sum(B01001_022E),
+                "75-79" = sum(B01001_023E), "80-84" = sum(B01001_024E),
+                "85+" = sum(B01001_025E)) %>%
+         select(-NAME, -GEOID,
+                -B01001_003E, -B01001_004E, -B01001_005E, -B01001_006E, 
+                -B01001_007E, -B01001_008E, -B01001_009E, -B01001_010E, 
+                -B01001_011E, -B01001_012E, -B01001_013E, -B01001_014E, 
+                -B01001_015E, -B01001_016E, -B01001_017E, -B01001_018E, 
+                -B01001_019E, -B01001_020E, -B01001_021E, -B01001_022E, 
+                -B01001_023E, -B01001_024E, -B01001_025E,
+                -B01001_003M, -B01001_004M, -B01001_005M, -B01001_006M, 
+                -B01001_007M, -B01001_008M, -B01001_009M, -B01001_010M, 
+                -B01001_011M, -B01001_012M, -B01001_013M, -B01001_014M, 
+                -B01001_015M, -B01001_016M, -B01001_017M, -B01001_018M,
+                -B01001_019M, -B01001_020M, -B01001_021M, -B01001_022M, 
+                -B01001_023M, -B01001_024M, -B01001_025M) %>%
+        distinct()
+
+
+pop2020 <- rbind(f2020, m2020)     # Merge two data frames
+pop2020 <- pivot_longer(pop2020, cols=2:19, names_to = "Age_Group", 
+                        values_to = "Population") # Turn Columns into Rows
+
+
+acsdata <- pop2020 %>% mutate(Population = ifelse(Gender=='Women',1,-1)*Population,
+                             Age_Group = factor(Age_Group, levels=unique(Age_Group)))
+
+ggplot() +
+  aes(x = Age_Group, y = Population, fill = Gender) + 
+  geom_bar(data = filter(acsdata, Gender == "Women"), stat='identity') + 
+  geom_bar(data = filter(acsdata, Gender == "Men"), stat='identity') +
+  scale_y_continuous(breaks=seq(-12000000, 12000000, 4000000),
+                     labels =c('12 mil','8 mil','4 mil','0','4 mil','8 mil','12 mil'),
+                     limits = c(-12000000, 12000000)) +
+  xlab("Age Groups") + ylab("Population (in millions)") + coord_flip() +
+  labs(fill = "Gender",
+       title=paste('Population in the United States (2020)'),
+       caption = 'Source: American Community Survey (ACS), 2016-2020 5-year Estimates') +
+  scale_fill_manual(values=c('dodgerblue', 'firebrick')) +
+  theme(plot.background = element_rect(fill = "white", color = NA),
+        panel.background = element_rect(fill = "white"),
+        axis.text = element_text(color = "black", size = 12),
+        axis.title = element_text(color = "black", size = 14),
+        plot.title = element_text(hjust = 0.5, color = "black", size = 14),
+      # plot.margin = unit(c(2,1.5,1,1), "cm"),
+         panel.grid = element_line(color = "white"))
+
+
+```
+
